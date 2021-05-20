@@ -60,8 +60,7 @@ defmodule Cloak.Mixfile do
           Cloak.Cipher,
           Cloak.Vault
         ],
-        Ciphers: ~r/Ciphers.AES/,
-        "Deprecated Ciphers": ~r/Ciphers.Deprecated/
+        Ciphers: ~r/Ciphers.AES/
       ]
     ]
   end

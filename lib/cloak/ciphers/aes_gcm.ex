@@ -43,7 +43,9 @@ defmodule Cloak.Ciphers.AES.GCM do
     iv_length = Keyword.get(opts, :iv_length, @default_iv_length)
     iv = :crypto.strong_rand_bytes(iv_length)
 
-    {ciphertext, ciphertag} = :crypto.block_encrypt(:aes_gcm, key, iv, {@aad, plaintext})
+    {ciphertext, ciphertag} =
+      :crypto.crypto_one_time_aead(:aes_256_gcm, key, iv, plaintext, @aad, true)
+
     {:ok, Encoder.encode(tag) <> iv <> ciphertag <> ciphertext}
   end
 
@@ -60,7 +62,8 @@ defmodule Cloak.Ciphers.AES.GCM do
       %{remainder: <<iv::binary-size(iv_length), ciphertag::binary-16, ciphertext::binary>>} =
         Decoder.decode(ciphertext)
 
-      {:ok, :crypto.block_decrypt(:aes_gcm, key, iv, {@aad, ciphertext, ciphertag})}
+      {:ok,
+       :crypto.crypto_one_time_aead(:aes_256_gcm, key, iv, ciphertext, @aad, ciphertag, false)}
     else
       :error
     end

@@ -35,9 +35,10 @@ defmodule Cloak.Ciphers.AES.CTR do
     tag = Keyword.fetch!(opts, :tag)
 
     iv = :crypto.strong_rand_bytes(16)
-    state = :crypto.stream_init(:aes_ctr, key, iv)
 
-    {_state, ciphertext} = :crypto.stream_encrypt(state, to_string(plaintext))
+    state = :crypto.crypto_init(:aes_256_ctr, key, iv, true)
+    ciphertext = :crypto.crypto_update(state, to_string(plaintext))
+
     {:ok, Encoder.encode(tag) <> iv <> ciphertext}
   end
 
@@ -62,8 +63,10 @@ defmodule Cloak.Ciphers.AES.CTR do
     if can_decrypt?(ciphertext, opts) do
       key = Keyword.fetch!(opts, :key)
       %{remainder: <<iv::binary-16, ciphertext::binary>>} = Decoder.decode(ciphertext)
-      state = :crypto.stream_init(:aes_ctr, key, iv)
-      {_state, plaintext} = :crypto.stream_decrypt(state, ciphertext)
+
+      state = :crypto.crypto_init(:aes_256_ctr, key, iv, false)
+      plaintext = :crypto.crypto_update(state, ciphertext)
+
       {:ok, plaintext}
     else
       :error
